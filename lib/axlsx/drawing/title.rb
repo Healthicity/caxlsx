@@ -15,6 +15,10 @@ module Axlsx
     # @return [Cell]
     attr_reader :cell
 
+    # Text size property
+    # @return [String]
+    attr_reader :text_typeface
+
     # Creates a new Title object
     # @param [String, Cell] title The cell or string to be used for the chart's title
     def initialize(title="", title_size="")
@@ -51,6 +55,14 @@ module Axlsx
       v
     end
 
+    # @see text_typeface
+    def text_typeface=(v)
+      DataTypeValidator.validate 'Title.text_typeface', String, v
+      @text_typeface = v
+      @cell = nil
+      v
+    end
+    
     # Check if the title is empty.
     #
     # A title is considered empty if it is an empty string. If the title references a cell it is *not* empty,
@@ -90,7 +102,9 @@ module Axlsx
             str << '<a:lstStyle/>'
             str << '<a:p>'
               str << '<a:r>'
-                str << ('<a:rPr sz="' << @text_size.to_s << '"/>')
+                str << ('<a:rPr sz="' << @text_size.to_s << '">')
+                str << ('<a:latin typeface="' << @text_typeface.to_s << '"/>') if @text_typeface
+                str << ("</a:rPr>")
                 str << ('<a:t>' << clean_value << '</a:t>')
               str << '</a:r>'
             str << '</a:p>'

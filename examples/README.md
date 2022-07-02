@@ -81,6 +81,7 @@ Customizations:
 ### Print
 
 * [Fit to page print settings](fit_to_page_example.md)
+* [Set print area](set_print_area_example.md)
 * [Headers and footers](header_footer_example.md)
 * [Page breaks](page_break_example.md)
 * [Print settings](print_settings_example.md)
@@ -90,6 +91,7 @@ Customizations:
 
 * [Custom Row Styles](row_styles_example.md)
 * [Outlines](row_outlines_example.md)
+* [Outline options](row_outlines_options_example.md)
 * [Row heights](row_heights_example.md)
 
 ### Sheet

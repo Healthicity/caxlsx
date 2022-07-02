@@ -14,6 +14,8 @@ module Axlsx
     # @option options [Symbol] legend_position
     # @option options [Array|String|Cell] start_at The X, Y coordinates defining the top left corner of the chart.
     # @option options [Array|String|Cell] end_at The X, Y coordinates defining the bottom right corner of the chart.
+    # @option options [Boolean] plot_visible_only (true) Whether only data from visible cells should be plotted.
+    # @option options [Boolean] rounded_corners (true) Whether the chart area shall have rounded corners.
     def initialize(frame, options={})
       @style = 18
       @view_3D = nil
@@ -26,6 +28,8 @@ module Axlsx
       @series_type = Series
       @title = Title.new
       @bg_color = nil
+      @plot_visible_only = true
+      @rounded_corners = true
       parse_options options
       start_at(*options[:start_at]) if options[:start_at]
       end_at(*options[:end_at]) if options[:end_at]
@@ -97,6 +101,14 @@ module Axlsx
     # Background color for the chart
     # @return [String]
     attr_reader :bg_color
+
+    # Whether only data from visible cells should be plotted.
+    # @return [Boolean]
+    attr_reader :plot_visible_only
+
+    # Whether the chart area shall have rounded corners.
+    # @return [Boolean]
+    attr_reader :rounded_corners
 
     # The relationship object for this chart.
     # @return [Relationship]
@@ -180,6 +192,16 @@ module Axlsx
       @bg_color = v
     end
 
+    # Whether only data from visible cells should be plotted.
+    # @param [Boolean] v
+    # @return [Boolean]
+    def plot_visible_only=(v) Axlsx::validate_boolean(v); @plot_visible_only = v; end
+
+    # Whether the chart area shall have rounded corners.
+    # @param [Boolean] v
+    # @return [Boolean]
+    def rounded_corners=(v) Axlsx::validate_boolean(v); @rounded_corners = v; end
+
     # Serializes the object
     # @param [String] str
     # @return [String]
@@ -187,9 +209,10 @@ module Axlsx
       str << '<?xml version="1.0" encoding="UTF-8"?>'
       str << ('<c:chartSpace xmlns:c="' << XML_NS_C << '" xmlns:a="' << XML_NS_A << '" xmlns:r="' << XML_NS_R << '">')
       str << ('<c:date1904 val="' << Axlsx::Workbook.date1904.to_s << '"/>')
+      str << ('<c:roundedCorners val="' << rounded_corners.to_s << '"/>')
       str << ('<c:style val="' << style.to_s << '"/>')
       str << '<c:chart>'
-      @title.to_xml_string str
+      @title.to_xml_string(str) unless @title.empty?
       str << ('<c:autoTitleDeleted val="' << (@title == nil).to_s << '"/>')
       @view_3D.to_xml_string(str) if @view_3D
       str << '<c:floor><c:thickness val="0"/></c:floor>'
@@ -206,7 +229,7 @@ module Axlsx
         str << '<c:overlay val="0"/>'
         str << '</c:legend>'
       end
-      str << '<c:plotVisOnly val="1"/>'
+      str << ('<c:plotVisOnly val="' << @plot_visible_only.to_s << '"/>')
       str << ('<c:dispBlanksAs val="' << display_blanks_as.to_s << '"/>')
       str << '<c:showDLblsOverMax val="1"/>'
       str << '</c:chart>'

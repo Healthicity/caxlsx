@@ -1,3 +1,5 @@
+$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../"
+
 require 'tc_helper.rb'
 
 class TestChart < Test::Unit::TestCase
@@ -25,6 +27,8 @@ class TestChart < Test::Unit::TestCase
     @chart.title = @row.cells.first
     assert_equal(@chart.title.text, "one", "the title text was set via cell reference")
     assert_equal(@chart.title.cell, @row.cells.first)
+    @chart.title = ""
+    assert(@chart.title.empty?)
   end
 
   def test_style
@@ -103,9 +107,24 @@ class TestChart < Test::Unit::TestCase
   end
 
   def test_d_lbls
-    assert_equal(nil, @chart.instance_values[:d_lbls])
+
+    assert_equal(nil, Axlsx.instance_values_for(@chart)[:d_lbls])
     @chart.d_lbls.d_lbl_pos = :t
     assert(@chart.d_lbls.is_a?(Axlsx::DLbls), 'DLbls instantiated on access')
+  end
+
+  def test_plot_visible_only
+    assert(@chart.plot_visible_only, "default should be true")
+    @chart.plot_visible_only = false
+    assert_false(@chart.plot_visible_only)
+    assert_raise(ArgumentError) { @chart.plot_visible_only = "" }
+  end
+
+  def test_rounded_corners
+    assert(@chart.rounded_corners, "default should be true")
+    @chart.rounded_corners = false
+    assert_false(@chart.rounded_corners)
+    assert_raise(ArgumentError) { @chart.rounded_corners = "" }
   end
 
   def test_to_xml_string
@@ -119,5 +138,27 @@ class TestChart < Test::Unit::TestCase
     @chart.display_blanks_as = :span
     doc = Nokogiri::XML(@chart.to_xml_string)
     assert_equal("span", doc.xpath("//c:dispBlanksAs").attr("val").value, "did not use the display_blanks_as configuration")
+  end
+
+  def test_to_xml_string_for_title
+    @chart.title = "foobar"
+    doc = Nokogiri::XML(@chart.to_xml_string)
+    assert_equal("foobar", doc.xpath("//c:title//c:tx//a:t").text)
+
+    @chart.title = ""
+    doc = Nokogiri::XML(@chart.to_xml_string)
+    assert_equal(0, doc.xpath("//c:title").size)
+  end
+
+  def test_to_xml_string_for_plot_visible_only
+    assert_equal("true", Nokogiri::XML(@chart.to_xml_string).xpath("//c:plotVisOnly").attr("val").value)
+    @chart.plot_visible_only = false
+    assert_equal("false", Nokogiri::XML(@chart.to_xml_string).xpath("//c:plotVisOnly").attr("val").value)
+  end
+
+  def test_to_xml_string_for_rounded_corners
+    assert_equal("true", Nokogiri::XML(@chart.to_xml_string).xpath("//c:roundedCorners").attr("val").value)
+    @chart.rounded_corners = false
+    assert_equal("false", Nokogiri::XML(@chart.to_xml_string).xpath("//c:roundedCorners").attr("val").value)
   end
 end

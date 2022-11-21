@@ -87,6 +87,19 @@ class TestPivotTable < Test::Unit::TestCase
     assert_equal(['Year'], pivot_table.no_subtotals_on_headers)
   end
 
+  def test_add_pivot_table_with_months_sorted
+    pivot_table = @ws.add_pivot_table('G5:G6', 'A1:E5', {:sort_on_headers=>['Month']}) do |pt|
+      pt.data = ['Sales']
+      pt.rows = ['Year','Month']
+    end
+    assert_equal({'Month' => :ascending}, pivot_table.sort_on_headers)
+
+    pivot_table.sort_on_headers = {'Month' => :descending}
+    assert_equal({'Month' => :descending}, pivot_table.sort_on_headers)
+
+    shared_test_pivot_table_xml_validity(pivot_table)
+  end
+
   def test_header_indices
     pivot_table = @ws.add_pivot_table('G5:G6', 'A1:E5')
     assert_equal(0,   pivot_table.header_index_of('Year'   ))
@@ -149,15 +162,27 @@ class TestPivotTable < Test::Unit::TestCase
       pt.data = [
         {ref: "Gross amount", num_fmt: 2},
         {ref: "Net amount", num_fmt: 2},
+        {ref: "Margin", num_fmt: 2},
       ]
     end
 
     xml = pivot_table.to_xml_string
 
-    assert(xml.include?('colFields'))
-
     assert(!xml.include?('dataOnRows'))
-    assert(!xml.include?('colItems'))
+    assert(xml.include?('colFields'))
+    assert(xml.include?('colItems'))
+
+    doc = Nokogiri::XML(pivot_table.to_xml_string)
+
+    assert_equal('1', doc.at_css('colFields')['count'])
+    assert_equal('-2', doc.at_css('colFields field')['x'])
+
+    assert_equal('3', doc.at_css('colItems')['count'])
+    assert_equal( 3, doc.at_css('colItems').children.size)
+    assert_nil( doc.at_css('colItems i')['x'])
+    assert_equal('1', doc.at_css('colItems i[i=1] x')['v'])
+    assert_equal('2', doc.at_css('colItems i[i=2] x')['v'])
+
   end
 
   def test_pivot_table_with_only_one_data_row

@@ -1,4 +1,7 @@
 # encoding: UTF-8
+
+require_relative "border_creator"
+
 module Axlsx
 
   # The Worksheet class represents a worksheet in the workbook.
@@ -303,7 +306,8 @@ module Axlsx
     end
 
     # The name of the worksheet
-    # The name of a worksheet must be unique in the workbook, and must not exceed 31 characters
+    # The name of a worksheet must be unique in the workbook, and must not exceed the number
+    # of characters defined in Axlsx::WORKSHEET_MAX_NAME_LENGTH
     # @param [String] name
     def name=(name)
       validate_sheet_name name
@@ -559,6 +563,41 @@ module Axlsx
       cells.each { |cell| cell.style = style }
     end
 
+    # Set the style for cells in a specific column
+    # @param [String|Array] cell references
+    # @param [Hash] styles
+    def add_style(cell_refs, *styles)
+      if !cell_refs.is_a?(Array)
+        cell_refs = [cell_refs]
+      end
+
+      cell_refs.each do |cell_ref|
+        item = self[cell_ref]
+
+        cells = item.is_a?(Array) ? item : [item]
+
+        cells.each do |cell|
+          styles.each do |style|
+            cell.add_style(style)
+          end
+        end
+      end
+    end
+
+    # Set the style for cells in a specific column
+    # @param [String|Array] cell references
+    # @param [Hash|Array|Symbol] border options
+    def add_border(cell_refs, options = Axlsx::Border::EDGES)
+      if !cell_refs.is_a?(Array)
+        cell_refs = [cell_refs]
+      end
+
+      cell_refs.each do |cell_ref|
+        cells = self[cell_ref]
+        Axlsx::BorderCreator.new(self, cells, options).draw
+      end
+    end
+
     # Returns a sheet node serialization for this sheet in the workbook.
     def to_sheet_node_xml_string(str='')
       add_autofilter_defined_name_to_workbook
@@ -626,11 +665,12 @@ module Axlsx
       r = rows[row_index]
 
       if r
-        return r[col_index] 
+        return r[col_index]
       end
     end
 
-    # shortcut method to access styles direclty from the worksheet
+    # Shortcut method to access workbook styles
+    #
     # This lets us do stuff like:
     # @example
     #     p = Axlsx::Package.new
@@ -639,6 +679,9 @@ module Axlsx
     #       sheet.add_row ['Oh No!'], :styles => my_style
     #     end
     #     p.serialize 'foo.xlsx'
+    #
+    # @note The XLSX format does not support worksheet-specific styles. Even when using this method
+    #     you're still working with the single global {Axlsx::Styles} object in the workbook.
     def styles
       @styles ||= self.workbook.styles
     end
@@ -684,8 +727,8 @@ module Axlsx
       # ignore first character (BOM) after encoding to utf16 because Excel does so, too.
       raise ArgumentError, (ERR_SHEET_NAME_EMPTY) if name.empty?
       character_length = name.encode("utf-16")[1..-1].encode("utf-16").bytesize / 2
-      raise ArgumentError, (ERR_SHEET_NAME_TOO_LONG % name) if character_length > 31
-      raise ArgumentError, (ERR_SHEET_NAME_CHARACTER_FORBIDDEN % name) if '[]*/\?:'.chars.any? { |char| name.include? char }
+      raise ArgumentError, (ERR_SHEET_NAME_TOO_LONG % name) if character_length > WORKSHEET_MAX_NAME_LENGTH
+      raise ArgumentError, (ERR_SHEET_NAME_CHARACTER_FORBIDDEN % name) if WORKSHEET_NAME_FORBIDDEN_CHARS.any? { |char| name.include? char }
       name = Axlsx::coder.encode(name)
       sheet_names = @workbook.worksheets.reject { |s| s == self }.map { |s| s.name }
       raise ArgumentError, (ERR_DUPLICATE_SHEET_NAME % name) if sheet_names.include?(name)

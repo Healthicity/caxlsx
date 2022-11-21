@@ -1,13 +1,12 @@
 # Caxlsx (Community Continued Version)
 [![Build Status](https://github.com/caxlsx/caxlsx/workflows/Test/badge.svg)](https://github.com/caxlsx/caxlsx/actions)
-[![Gem
-Version](https://badge.fury.io/rb/caxlsx.svg)](http://badge.fury.io/rb/caxlsx)
+[![Gem Version](https://badge.fury.io/rb/caxlsx.svg)](http://badge.fury.io/rb/caxlsx)
 ![Total downloads](http://ruby-gem-downloads-badge.herokuapp.com/caxlsx?type=total)
-![Downloads for 3.2.0 (latest)](http://ruby-gem-downloads-badge.herokuapp.com/caxlsx/3.2.0?label=downloads%203.2.0)
+![Downloads for 3.3.0 (latest)](http://ruby-gem-downloads-badge.herokuapp.com/caxlsx/3.3.0?label=downloads%203.3.0)
 
 ## Notice: Community Axlsx Organization
 
-To better maintain the Axlsx ecosystem, all related gems have been forked or moved to the following community organization: 
+To better maintain the Axlsx ecosystem, all related gems have been forked or moved to the following community organization:
 
 http://github.com/caxlsx
 
@@ -120,8 +119,6 @@ Currently the following additional gems are available:
   * Provides a `.axlsx` renderer to Rails so you can move all your spreadsheet code from your controller into view files.
 - [activeadmin-caxlsx](https://github.com/caxlsx/activeadmin-caxlsx)
   * An Active Admin plugin that includes DSL to create downloadable reports.
-- [axlsx_styler](https://github.com/axlsx-styler-gem/axlsx_styler)
-  * Allows you to build clean and maintainable styles for your axlsx spreadsheets. Build your spreadsheeet with data and then apply styles later.
 
 ## Known Software Interoperability Issues
 
